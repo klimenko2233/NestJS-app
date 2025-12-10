@@ -1,6 +1,6 @@
 import {Body, Controller, Delete, Get, Param, Post, Put, Query} from '@nestjs/common';
 import {TasksService} from './tasks.service';
-import type {Task}  from './task.model';
+import type {Task}  from './task.entity';
 import {CreateTaskDto} from './create-task.dto';
 import {UpdateTaskDto} from './update-task.dto';
 
@@ -9,12 +9,12 @@ export class TasksController {
     constructor(private tasksService: TasksService) {}
 
     @Get()
-    getTasks(@Query('status') status?: string): Task[] {
-        return this.tasksService.getTasksByStatus(status);
+    getTasks(@Query('status') status?: string) {
+        return this.tasksService.getAllTasks(status);
     }
 
     @Post()
-    createTask(@Body() createTaskDto: CreateTaskDto): Task {
+    createTask(@Body() createTaskDto: CreateTaskDto) {
         return this.tasksService.createTask(
             createTaskDto.title,
             createTaskDto.description,
