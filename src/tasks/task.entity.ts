@@ -1,5 +1,5 @@
-import {Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn} from 'typeorm';
-import {CreateTaskDto} from './create-task.dto';
+import {Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn} from 'typeorm';
+import {User} from '../users/user.entity';
 
 @Entity()
 export class Task {
@@ -26,4 +26,10 @@ export class Task {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @ManyToOne(() => User, (user) => user.tasks, {onDelete: 'CASCADE'})
+    user: User;
+
+    @Column()
+    userId: string;
 }
