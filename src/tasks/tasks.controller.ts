@@ -1,6 +1,5 @@
 import {Body, Controller, Delete, Get, Param, Post, Put, Query, Req, UseGuards} from '@nestjs/common';
 import {TasksService} from './tasks.service';
-import type {Task}  from './task.entity';
 import {CreateTaskDto} from './create-task.dto';
 import {UpdateTaskDto} from './update-task.dto';
 import {JwtAuthGuard} from '../auth/guards/jwt-auth.guard';
@@ -20,14 +19,13 @@ export class TasksController {
 
     @Get()
     getTasks(@Req() req: RequestWithUser, @Query('status') status?: string) {
-        console.log('The user who makes the request:', req.user);
-        return this.tasksService.getAllTasks(status);
+        return this.tasksService.getAllTasks(req.user.id, status);
     }
 
     @Post()
     createTask(@Req() req: RequestWithUser, @Body() createTaskDto: CreateTaskDto) {
-        console.log('The user creates a task:', req.user.email);
         return this.tasksService.createTask(
+            req.user.id,
             createTaskDto.title,
             createTaskDto.description,
             createTaskDto.dueDate
@@ -35,18 +33,21 @@ export class TasksController {
     }
 
     @Get(':id')
-    getTaskById(@Param('id') id: string) {
-        return this.tasksService.getTaskById(id);
+    getTaskById(@Req() req: RequestWithUser, @Param('id') id: string) {
+        return this.tasksService.getTaskById(req.user.id, id);
     }
 
-
     @Put(':id')
-    updateTask(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
-        return this.tasksService.updateTask(id, updateTaskDto);
+    updateTask(
+        @Req() req: RequestWithUser,
+        @Param('id') id: string,
+        @Body() updateTaskDto: UpdateTaskDto,
+    ) {
+        return this.tasksService.updateTask(req.user.id, id, updateTaskDto);
     }
 
     @Delete(':id')
-    deleteTask(@Param('id') id: string) {
-        return this.tasksService.deleteTask(id);
+    deleteTask(@Req() req: RequestWithUser, @Param('id') id: string) {
+        return this.tasksService.deleteTask(req.user.id, id);
     }
 }
