@@ -16,7 +16,8 @@ import {AppService} from './app.service';
           password: 'secretpassword',
           database: 'tasks_db',
           autoLoadEntities: true,
-          synchronize: true
+          synchronize: true,
+          logging: true
       }),
       TasksModule,
       AuthModule,

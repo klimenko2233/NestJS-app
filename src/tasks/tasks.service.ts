@@ -4,6 +4,17 @@ import {Task} from './task.entity';
 import { Repository } from 'typeorm';
 import {UpdateTaskDto} from './update-task.dto';
 
+export interface PaginatedTasks {
+    items: Task[];
+    meta: {
+        totalItems: number;
+        itemCount: number;
+        itemsPerPage: number;
+        totalPages: number;
+        currentPage: number;
+    };
+}
+
 @Injectable()
 export class TasksService {
     constructor(
@@ -11,16 +22,44 @@ export class TasksService {
         private tasksRepository: Repository<Task>
     ) {}
 
-    async getAllTasks(userId: string, status?: string): Promise<Task[]> {
-       const query = this.tasksRepository
-           .createQueryBuilder('task')
-           .where('task.userId = :userId', { userId });
+    async getAllTasks(
+        userId: string,
+        status?: string,
+        page: number = 1,
+        limit: number = 10,
+        sortBy: string = 'createdAt',
+        order: 'ASC' | 'DESC' = 'DESC'
+    ): Promise<PaginatedTasks> {
+        const offset = (page - 1) * limit;
 
-       if (status) {
-           query.andWhere('task.status = :status', { status });
-       }
+        const queryBuilder = this.tasksRepository
+            .createQueryBuilder('task')
+            .where('task.userId = :userId', { userId });
 
-       return await query.getMany();
+        if (status) {
+            queryBuilder.andWhere('task.status = :status', { status });
+        }
+
+        const totalItems = await queryBuilder.getCount();
+
+        const tasks = await queryBuilder
+            .orderBy(`task.${sortBy}`, order)
+            .skip(offset)
+            .take(limit)
+            .getMany();
+
+        const totalPages = Math.ceil(totalItems / limit);
+
+       return {
+            items: tasks,
+            meta: {
+                totalItems,
+                itemCount: tasks.length,
+                itemsPerPage: limit,
+                totalPages,
+                currentPage: page
+            }
+       };
     }
 
     async createTask(

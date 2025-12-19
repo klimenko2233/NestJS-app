@@ -1,8 +1,9 @@
-import {Body, Controller, Delete, Get, Param, Post, Put, Query, Req, UseGuards} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Param, Post, Put, Query, Req, UseGuards, ValidationPipe} from '@nestjs/common';
 import {TasksService} from './tasks.service';
-import {CreateTaskDto} from './create-task.dto';
+import {CreateTaskDto} from './dto/create-task.dto';
 import {UpdateTaskDto} from './update-task.dto';
 import {JwtAuthGuard} from '../auth/guards/jwt-auth.guard';
+import {GetTasksDto} from './dto/get-tasks.dto';
 
 interface RequestWithUser extends Request {
     user: {
@@ -18,8 +19,18 @@ export class TasksController {
     constructor(private tasksService: TasksService) {}
 
     @Get()
-    getTasks(@Req() req: RequestWithUser, @Query('status') status?: string) {
-        return this.tasksService.getAllTasks(req.user.id, status);
+    getTasks(
+        @Req() req: RequestWithUser,
+        @Query(new ValidationPipe({ transform: true })) filterDto: GetTasksDto
+    ) {
+        return this.tasksService.getAllTasks(
+            req.user.id,
+            filterDto.status,
+            filterDto.page,
+            filterDto.limit,
+            filterDto.sortBy,
+            filterDto.order
+        );
     }
 
     @Post()
