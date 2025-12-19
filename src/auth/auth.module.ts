@@ -1,24 +1,38 @@
-import {Module} from '@nestjs/common';
-import {PassportModule} from '@nestjs/passport';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
+import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
-import {JwtModule} from '@nestjs/jwt';
-import {AuthController} from './auth.controller';
-import {AuthService} from './auth.service';
-import {JwtStrategy} from './strategies/jwt.strategy';
-
 
 @Module({
     imports: [
         UsersModule,
         PassportModule,
-        JwtModule.register({
-            secret: process.env.JWT_SECRET || 'secretKey',
-            signOptions: {expiresIn: '1d'},
-        })
+        JwtModule.registerAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: async (configService: ConfigService) => {
+                const secret = configService.get<string>('JWT_SECRET');
+                const expiresIn = configService.get<string>('JWT_EXPIRES_IN', '24h');
+
+                if (!secret) {
+                    throw new Error('JWT_SECRET is not defined in environment variables');
+                }
+
+                return {
+                    secret,
+                    signOptions: {
+                        expiresIn: expiresIn as any,
+                    },
+                };
+            },
+        }),
     ],
     controllers: [AuthController],
     providers: [AuthService, JwtStrategy],
-    exports: [AuthService]
+    exports: [AuthService],
 })
-
 export class AuthModule {}
