@@ -2,7 +2,7 @@ import {ForbiddenException, Injectable, NotFoundException} from '@nestjs/common'
 import {InjectRepository} from '@nestjs/typeorm';
 import {Task} from './task.entity';
 import { Repository } from 'typeorm';
-import {UpdateTaskDto} from './update-task.dto';
+import {UpdateTaskDto} from './dto/update-task.dto';
 
 export interface PaginatedTasks {
     items: Task[];

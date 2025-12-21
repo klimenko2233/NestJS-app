@@ -1,17 +1,10 @@
 import {Body, Controller, Delete, Get, Param, Post, Put, Query, Req, UseGuards, ValidationPipe} from '@nestjs/common';
 import {TasksService} from './tasks.service';
 import {CreateTaskDto} from './dto/create-task.dto';
-import {UpdateTaskDto} from './update-task.dto';
+import {UpdateTaskDto} from './dto/update-task.dto';
 import {JwtAuthGuard} from '../auth/guards/jwt-auth.guard';
 import {GetTasksDto} from './dto/get-tasks.dto';
-
-interface RequestWithUser extends Request {
-    user: {
-        id: string;
-        email: string;
-        name: string;
-    };
-}
+import {CurrentUser} from '../auth/decorators/current-user.decorator';
 
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)
@@ -20,11 +13,11 @@ export class TasksController {
 
     @Get()
     getTasks(
-        @Req() req: RequestWithUser,
+        @CurrentUser() user: { id: string },
         @Query(new ValidationPipe({ transform: true })) filterDto: GetTasksDto
     ) {
         return this.tasksService.getAllTasks(
-            req.user.id,
+            user.id,
             filterDto.status,
             filterDto.page,
             filterDto.limit,
@@ -34,9 +27,12 @@ export class TasksController {
     }
 
     @Post()
-    createTask(@Req() req: RequestWithUser, @Body() createTaskDto: CreateTaskDto) {
+    createTask(
+        @CurrentUser() user: { id: string },
+        @Body() createTaskDto: CreateTaskDto
+    ) {
         return this.tasksService.createTask(
-            req.user.id,
+            user.id,
             createTaskDto.title,
             createTaskDto.description,
             createTaskDto.dueDate
@@ -44,21 +40,27 @@ export class TasksController {
     }
 
     @Get(':id')
-    getTaskById(@Req() req: RequestWithUser, @Param('id') id: string) {
-        return this.tasksService.getTaskById(req.user.id, id);
+    getTaskById(
+        @CurrentUser() user: { id: string },
+        @Param('id') id: string
+    ) {
+        return this.tasksService.getTaskById(user.id, id);
     }
 
     @Put(':id')
     updateTask(
-        @Req() req: RequestWithUser,
+        @CurrentUser() user: { id: string },
         @Param('id') id: string,
         @Body() updateTaskDto: UpdateTaskDto,
     ) {
-        return this.tasksService.updateTask(req.user.id, id, updateTaskDto);
+        return this.tasksService.updateTask(user.id, id, updateTaskDto);
     }
 
     @Delete(':id')
-    deleteTask(@Req() req: RequestWithUser, @Param('id') id: string) {
-        return this.tasksService.deleteTask(req.user.id, id);
+    deleteTask(
+        @CurrentUser() user: { id: string },
+        @Param('id') id: string
+    ) {
+        return this.tasksService.deleteTask(user.id, id);
     }
 }

@@ -1,7 +1,9 @@
 import {IsEmail, IsString, Matches, MaxLength, MinLength} from 'class-validator';
+import {IsEmailUnique} from '../decorators/is-email-unique.decorator';
 
 export class RegisterDto {
     @IsEmail()
+    @IsEmailUnique({ message: 'Email address already in use' })
     email: string;
 
     @IsString()
