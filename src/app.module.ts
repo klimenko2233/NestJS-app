@@ -6,7 +6,7 @@ import { AppService } from './app.service';
 import { TasksModule } from './tasks/tasks.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import {IsEmailUniqueConstraint} from './auth/validators/is-email-unique.validator';
+import { IsEmailUniqueConstraint } from './auth/validators/is-email-unique.validator';
 
 @Module({
     imports: [
@@ -47,6 +47,9 @@ import {IsEmailUniqueConstraint} from './auth/validators/is-email-unique.validat
         UsersModule,
     ],
     controllers: [AppController],
-    providers: [AppService, IsEmailUniqueConstraint]
+    providers: [
+        AppService,
+        IsEmailUniqueConstraint,
+    ],
 })
 export class AppModule {}
