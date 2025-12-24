@@ -7,12 +7,29 @@ import { TasksModule } from './tasks/tasks.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { IsEmailUniqueConstraint } from './auth/validators/is-email-unique.validator';
+import { HealthModule } from './health/health.module';
+import * as Joi from 'joi';
+
 
 @Module({
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
-            envFilePath: '.env',
+            envFilePath: `.env.${process.env.NODE_ENV}`,
+            validationSchema: Joi.object({
+                NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
+                PORT: Joi.number().default(3000),
+                DB_HOST: Joi.string().required(),
+                DB_PORT: Joi.number().default(5432),
+                DB_USERNAME: Joi.string().required(),
+                DB_PASSWORD: Joi.string().required(),
+                DB_NAME: Joi.string().required(),
+                JWT_SECRET: Joi.string().required(),
+                JWT_EXPIRES_IN: Joi.string().default('24h'),
+                LOG_LEVEL: Joi.string().valid('debug', 'info', 'warn', 'error', 'verbose').default('info'),
+                CORS_ORIGIN: Joi.string().uri().optional(),
+            }),
+            validationOptions: { abortEarly: true }
         }),
 
         TypeOrmModule.forRootAsync({
@@ -37,7 +54,7 @@ import { IsEmailUniqueConstraint } from './auth/validators/is-email-unique.valid
                     password: dbPassword,
                     database: dbName,
                     autoLoadEntities: true,
-                    synchronize: configService.get<string>('NODE_ENV') !== 'production',
+                    synchronize: false,
                 };
             },
         }),
@@ -45,6 +62,7 @@ import { IsEmailUniqueConstraint } from './auth/validators/is-email-unique.valid
         TasksModule,
         AuthModule,
         UsersModule,
+        HealthModule,
     ],
     controllers: [AppController],
     providers: [
